@@ -11,20 +11,32 @@ let keywordDB = JSON.parse(
 	fs.readFileSync("./plugins/keyword-manager/keywordDB.json", "utf8")
 );
 
+// Prevent spamming
+let lastReplyTime = 0;
+
 export function processKeyword(msg) {
+	const currentTime = new Date().getTime();
+	if (currentTime - lastReplyTime < 1000) {
+		return;
+	}
 	if (msg.content.startsWith("/add")) {
 		addKeyword(msg);
+		lastReplyTime = currentTime;
 	} else if (msg.content.startsWith("/edit")) {
 		editKeyword(msg);
+		lastReplyTime = currentTime;
 	} else if (msg.content.startsWith("/remove")) {
 		removeKeyword(msg);
+		lastReplyTime = currentTime;
 	} else if (msg.content.startsWith("/list")) {
 		listKeywords(msg);
+		lastReplyTime = currentTime;
 	} else {
 		// Echo stored keywords' contents
 		const keyword = msg.content;
 		if (keywordDB[keyword]) {
 			msg.reply(keywordDB[keyword].content);
+			lastReplyTime = currentTime;
 		}
 	}
 }
