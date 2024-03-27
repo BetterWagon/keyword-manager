@@ -24,7 +24,7 @@ export function processKeyword(msg) {
 		// Echo stored keywords' contents
 		const keyword = msg.content;
 		if (keywordDB[keyword]) {
-			msg.replyText(keywordDB[keyword].content);
+			msg.reply(keywordDB[keyword].content);
 		}
 	}
 }
@@ -42,9 +42,9 @@ function addKeyword(msg) {
 			JSON.stringify(keywordDB, null, 2),
 			"utf8"
 		);
-		msg.replyText(`${keyword} has been added with category ${categoryLowerCase}`);
+		msg.reply(`${keyword} has been added with category ${categoryLowerCase}`);
 	} else {
-		msg.replyText(`${keyword} already exists`);
+		msg.reply(`${keyword} already exists`);
 	}
 
 	// Reload keywordDB from file
@@ -67,11 +67,11 @@ function editKeyword(msg) {
 			JSON.stringify(keywordDB, null, 2),
 			"utf8"
 		);
-		msg.replyText(
+		msg.reply(
 			`${keyword} has been updated with category ${categoryLowerCase}`
 		);
 	} else {
-		msg.replyText(`${keyword} does not exist`);
+		msg.reply(`${keyword} does not exist`);
 	}
 
 	// Reload keywordDB from file
@@ -90,9 +90,9 @@ function removeKeyword(msg) {
 			JSON.stringify(keywordDB, null, 2),
 			"utf8"
 		);
-		msg.replyText(`${keyword} has been removed`);
+		msg.reply(`${keyword} has been removed`);
 	} else {
-		msg.replyText(`${keyword} does not exist`);
+		msg.reply(`${keyword} does not exist`);
 	}
 
 	// Reload keywordDB from file
@@ -123,5 +123,5 @@ function listKeywords(msg) {
 		replyMessage += `# ${category.charAt(0).toUpperCase() + category.slice(1)} : \n${categories[category].join("\n")}\n\n`;
 	});
 
-	msg.replyText(replyMessage);
+	msg.reply(replyMessage);
 }
