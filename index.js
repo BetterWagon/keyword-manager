@@ -2,21 +2,14 @@
 import fs from "fs";
 
 // Initialise keywordDB if it does not exist
-if (!fs.existsSync(`./plugins/keyword-manager/db/${msg.room}.json`)) {
-	fs.writeFileSync(`./plugins/keyword-manager/db/${msg.room}.json`, "{}", "utf8");
+if (!fs.existsSync("./plugins/keyword-manager/keywordDB.json")) {
+	fs.writeFileSync("./plugins/keyword-manager/keywordDB.json", "{}", "utf8");
 }
 
 // Load keywordDB from file
-let keywordDB = {};
-
-const files = fs.readdirSync("./plugins/keyword-manager/db/");
-files.forEach((file) => {
-  if (file.endsWith(".json")) {
-    const data = fs.readFileSync(`./plugins/keyword-manager/db/${file}`, "utf8");
-    const roomName = file.split(".")[0];
-    keywordDB[roomName] = JSON.parse(data);
-  }
-});
+let keywordDB = JSON.parse(
+	fs.readFileSync("./plugins/keyword-manager/keywordDB.json", "utf8")
+);
 
 // Prevent spamming
 let lastReplyTime = 0;
@@ -26,24 +19,23 @@ export function processKeyword(msg) {
 	if (currentTime - lastReplyTime < 1000) {
 		return;
 	}
-	if (msg.content.startsWith("/add")) {
+	if (msg.content.startsWith(process.env.KEYWORD_ADD)) {
 		addKeyword(msg);
 		lastReplyTime = currentTime;
-	} else if (msg.content.startsWith("/edit")) {
+	} else if (msg.content.startsWith(process.env.KEYWORD_EDIT)) {
 		editKeyword(msg);
 		lastReplyTime = currentTime;
-	} else if (msg.content.startsWith("/remove")) {
+	} else if (msg.content.startsWith(process.env.KEYWORD_REMOVE)) {
 		removeKeyword(msg);
 		lastReplyTime = currentTime;
-	} else if (msg.content.startsWith("/list")) {
+	} else if (msg.content.startsWith(process.env.KEYWORD_LIST)) {
 		listKeywords(msg);
 		lastReplyTime = currentTime;
 	} else {
 		// Echo stored keywords' contents
 		const keyword = msg.content;
-		const roomName = msg.room;
-		if (keywordDB[roomName] && keywordDB[roomName][keyword]) {
-			msg.reply(keywordDB[roomName][keyword].content);
+		if (keywordDB[msg.room][keyword]) {
+			msg.reply(keywordDB[msg.room][keyword].content);
 			lastReplyTime = currentTime;
 		}
 	}
@@ -54,11 +46,12 @@ function addKeyword(msg) {
 	const keyword = msg.content.split("::")[0].split(" ")[1];
 	const content = msg.content.split("::")[1];
 	const category = msg.content.split("::")[2] || "unsorted";
-    const categoryLowerCase = category.toLowerCase();
-	if (!keywordDB[keyword]) {
-		keywordDB[keyword] = { content, category: categoryLowerCase };
+	const categoryLowerCase = category.toLowerCase();
+	if (!keywordDB[msg.room][keyword]) {
+		keywordDB[msg.room][keyword] = { content, category: categoryLowerCase };
+		console.log(keywordDB);
 		fs.writeFileSync(
-			`./plugins/keyword-manager/db/${msg.room}.json`,
+			"./plugins/keyword-manager/keywordDB.json",
 			JSON.stringify(keywordDB, null, 2),
 			"utf8"
 		);
@@ -69,7 +62,7 @@ function addKeyword(msg) {
 
 	// Reload keywordDB from file
 	keywordDB = JSON.parse(
-		fs.readFileSync(`./plugins/keyword-manager/db/${msg.room}.json`, "utf8")
+		fs.readFileSync("./plugins/keyword-manager/keywordDB.json", "utf8")
 	);
 }
 
@@ -78,35 +71,33 @@ function editKeyword(msg) {
 	const keyword = msg.content.split("::")[0].split(" ")[1];
 	const content = msg.content.split("::")[1];
 	const category = msg.content.split("::")[2] || "unsorted";
-    const categoryLowerCase = category.toLowerCase();
-    console.log(categoryLowerCase);
-	if (keywordDB[keyword]) {
-		keywordDB[keyword] = { content, category: categoryLowerCase };
+	const categoryLowerCase = category.toLowerCase();
+	console.log(categoryLowerCase);
+	if (keywordDB[msg.room][keyword]) {
+		keywordDB[msg.room][keyword] = { content, category: categoryLowerCase };
 		fs.writeFileSync(
-			`./plugins/keyword-manager/db/${msg.room}.json`,
+			"./plugins/keyword-manager/keywordDB.json",
 			JSON.stringify(keywordDB, null, 2),
 			"utf8"
 		);
-		msg.reply(
-			`${keyword} has been updated with category ${categoryLowerCase}`
-		);
+		msg.reply(`${keyword} has been updated with category ${categoryLowerCase}`);
 	} else {
 		msg.reply(`${keyword} does not exist`);
 	}
 
 	// Reload keywordDB from file
 	keywordDB = JSON.parse(
-		fs.readFileSync(`./plugins/keyword-manager/db/${msg.room}.json`, "utf8")
+		fs.readFileSync("./plugins/keyword-manager/keywordDB.json", "utf8")
 	);
 }
 
 function removeKeyword(msg) {
 	// msg.content = "/remove keyword"
 	const keyword = msg.content.split(" ")[1];
-	if (keywordDB[keyword]) {
-		delete keywordDB[keyword];
+	if (keywordDB[msg.room][keyword]) {
+		delete keywordDB[msg.room][keyword];
 		fs.writeFileSync(
-			`./plugins/keyword-manager/db/${msg.room}.json`,
+			"./plugins/keyword-manager/keywordDB.json",
 			JSON.stringify(keywordDB, null, 2),
 			"utf8"
 		);
@@ -117,19 +108,19 @@ function removeKeyword(msg) {
 
 	// Reload keywordDB from file
 	keywordDB = JSON.parse(
-		fs.readFileSync(`./plugins/keyword-manager/db/${msg.room}.json`, "utf8")
+		fs.readFileSync("./plugins/keyword-manager/keywordDB.json", "utf8")
 	);
 }
 
 function listKeywords(msg) {
 	// Sample JSON : { "keyword": { "content": "content", "category": "category" }
 	const keywordDB = JSON.parse(
-		fs.readFileSync(`./plugins/keyword-manager/db/${msg.room}.json`, "utf8")
+		fs.readFileSync("./plugins/keyword-manager/keywordDB.json", "utf8")
 	);
 	const categories = {};
 
-	Object.keys(keywordDB).forEach((keyword) => {
-		const { category } = keywordDB[keyword];
+	Object.keys(keywordDB[msg.room]).forEach((keyword) => {
+		const { category } = keywordDB[msg.room][keyword];
 		if (!categories[category]) {
 			categories[category] = [];
 		}
@@ -138,9 +129,11 @@ function listKeywords(msg) {
 
 	const sortedCategories = Object.keys(categories).sort(); // Sort categories alphabetically
 
-	let replyMessage = "Keyword List\n\n" + '\u200b'.repeat(500);
+	let replyMessage = "Keyword List\n\n" + "\u200b".repeat(500);
 	sortedCategories.forEach((category) => {
-		replyMessage += `# ${category.charAt(0).toUpperCase() + category.slice(1)} : \n${categories[category].join("\n")}\n\n`;
+		replyMessage += `# ${
+			category.charAt(0).toUpperCase() + category.slice(1)
+		} : \n${categories[category].join("\n")}\n\n`;
 	});
 
 	msg.reply(replyMessage);
