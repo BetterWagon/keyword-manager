@@ -1,5 +1,7 @@
 // Keyword feature
 import fs from "fs";
+import fetch from "node-fetch";
+import JSSoup from "jssoup"; 
 
 // Initialise keywordDB if it does not exist
 if (!fs.existsSync("./plugins/keyword-manager/keywordDB.json")) {
@@ -31,6 +33,15 @@ export function processKeyword(msg) {
 	} else if (msg.content.startsWith(process.env.KEYWORD_LIST)) {
 		listKeywords(msg);
 		lastReplyTime = currentTime;
+	} else if (msg.content.startsWith("crawl")) {
+		fetch("https://raw.githubusercontent.com/KakaoSCV/KakaoSCV/master/LICENSE.md")
+			.then((response) => response.text())
+			.then((data) => {
+				msg.reply(data);
+			})
+			.catch((error) => {
+				console.error("Error fetching data:", error);
+			});
 	} else {
 		// Echo stored keywords' contents
 		const keyword = msg.content;
@@ -44,20 +55,44 @@ export function processKeyword(msg) {
 function addKeyword(msg) {
 	// msg.content = "/add newKeyword::New Content That Is Pretty Long::Category"
 	const keyword = msg.content.split("::")[0].split(" ")[1];
-	const content = msg.content.split("::")[1];
+	let content = msg.content.split("::")[1];
 	const category = msg.content.split("::")[2] || "unsorted";
 	const categoryLowerCase = category.toLowerCase();
-	if (!keywordDB[msg.room][keyword]) {
-		keywordDB[msg.room][keyword] = { content, category: categoryLowerCase };
-		console.log(keywordDB);
-		fs.writeFileSync(
-			"./plugins/keyword-manager/keywordDB.json",
-			JSON.stringify(keywordDB, null, 2),
-			"utf8"
-		);
-		msg.reply(`${keyword} has been added with category ${categoryLowerCase}`);
+	if (content.startsWith("http")) {
+		fetch(content)
+			.then((response) => response.text())
+			.then((html) => {
+				content = html
+					.replace(/<[^>]*>/g, "")
+					.replace(/<style[^>]*>.*<\/style>/gm, "")
+					.replace(/<script[^>]*>.*<\/script>/gm, ""); // Strip HTML, CSS and JavaScript
+				if (!keywordDB[msg.room][keyword]) {
+					keywordDB[msg.room][keyword] = { content, category: categoryLowerCase };
+					fs.writeFileSync(
+						"./plugins/keyword-manager/keywordDB.json",
+						JSON.stringify(keywordDB, null, 2),
+						"utf8"
+					);
+					msg.reply(`${keyword} has been added with category ${categoryLowerCase}`);
+				} else {
+					msg.reply(`${keyword} already exists`);
+				}
+			})
+			.catch((error) => {
+				msg.reply(`Failed to fetch URL for ${keyword} keyword! Aborting action.`);
+			});
 	} else {
-		msg.reply(`${keyword} already exists`);
+		if (!keywordDB[msg.room][keyword]) {
+			keywordDB[msg.room][keyword] = { content, category: categoryLowerCase };
+			fs.writeFileSync(
+				"./plugins/keyword-manager/keywordDB.json",
+				JSON.stringify(keywordDB, null, 2),
+				"utf8"
+			);
+			msg.reply(`${keyword} has been added with category ${categoryLowerCase}`);
+		} else {
+			msg.reply(`${keyword} already exists`);
+		}
 	}
 
 	// Reload keywordDB from file
@@ -69,20 +104,43 @@ function addKeyword(msg) {
 function editKeyword(msg) {
 	// msg.content = "/add newKeyword::New Content That Is Pretty Long::Category"
 	const keyword = msg.content.split("::")[0].split(" ")[1];
-	const content = msg.content.split("::")[1];
+	let content = msg.content.split("::")[1];
 	const category = msg.content.split("::")[2] || "unsorted";
 	const categoryLowerCase = category.toLowerCase();
-	console.log(categoryLowerCase);
-	if (keywordDB[msg.room][keyword]) {
-		keywordDB[msg.room][keyword] = { content, category: categoryLowerCase };
-		fs.writeFileSync(
-			"./plugins/keyword-manager/keywordDB.json",
-			JSON.stringify(keywordDB, null, 2),
-			"utf8"
-		);
-		msg.reply(`${keyword} has been updated with category ${categoryLowerCase}`);
+	if (content.startsWith("http")) {
+		fetch(content)
+			.then((response) => response.text())
+			.then((html) => {
+				content = html.replace(/<[^>]*>/g, "");
+				if (keywordDB[msg.room][keyword]) {
+					keywordDB[msg.room][keyword] = { content, category: categoryLowerCase };
+					fs.writeFileSync(
+						"./plugins/keyword-manager/keywordDB.json",
+						JSON.stringify(keywordDB, null, 2),
+						"utf8"
+					);
+					msg.reply(
+						`${keyword} has been updated with category ${categoryLowerCase}`
+					);
+				} else {
+					msg.reply(`${keyword} does not exist`);
+				}
+			})
+			.catch((error) => {
+				msg.reply(`Failed to fetch URL for ${keyword} keyword! Aborting action.`);
+			});
 	} else {
-		msg.reply(`${keyword} does not exist`);
+		if (keywordDB[msg.room][keyword]) {
+			keywordDB[msg.room][keyword] = { content, category: categoryLowerCase };
+			fs.writeFileSync(
+				"./plugins/keyword-manager/keywordDB.json",
+				JSON.stringify(keywordDB, null, 2),
+				"utf8"
+			);
+			msg.reply(`${keyword} has been updated with category ${categoryLowerCase}`);
+		} else {
+			msg.reply(`${keyword} does not exist`);
+		}
 	}
 
 	// Reload keywordDB from file
