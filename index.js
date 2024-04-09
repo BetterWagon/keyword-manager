@@ -1,7 +1,6 @@
 // Keyword feature
 import fs from "fs";
 import fetch from "node-fetch";
-import JSSoup from "jssoup"; 
 
 // Initialise keywordDB if it does not exist
 if (!fs.existsSync("./plugins/keyword-manager/keywordDB.json")) {
