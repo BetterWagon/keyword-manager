@@ -33,18 +33,12 @@ export function processKeyword(msg) {
 	} else if (msg.content.startsWith(process.env.KEYWORD_LIST)) {
 		listKeywords(msg);
 		lastReplyTime = currentTime;
-	} else if (msg.content.startsWith("crawl")) {
-		fetch("https://raw.githubusercontent.com/KakaoSCV/KakaoSCV/master/LICENSE.md")
-			.then((response) => response.text())
-			.then((data) => {
-				msg.reply(data);
-			})
-			.catch((error) => {
-				console.error("Error fetching data:", error);
-			});
 	} else {
 		// Echo stored keywords' contents
 		const keyword = msg.content;
+		if (!keywordDB[msg.room]) {
+			return;
+		}
 		if (keywordDB[msg.room][keyword]) {
 			msg.reply(keywordDB[msg.room][keyword].content);
 			lastReplyTime = currentTime;
