@@ -20,6 +20,7 @@ export function processKeyword(msg) {
 	if (currentTime - lastReplyTime < 1000) {
 		return;
 	}
+	checkRoomInDB(msg);
 	if (msg.content.startsWith(process.env.KEYWORD_ADD)) {
 		addKeyword(msg);
 		lastReplyTime = currentTime;
@@ -49,6 +50,24 @@ export function processKeyword(msg) {
 			lastReplyTime = currentTime;
 		}
 	}
+}
+
+function checkRoomInDB(msg) {
+	if (keywordDB[msg.room]) {
+		return;
+	}
+
+	keywordDB[msg.room] = {};
+	fs.writeFileSync(
+		"./plugins/keyword-manager/keywordDB.json",
+		JSON.stringify(keywordDB, null, 2),
+		"utf8"
+	);
+
+	// Reload keywordDB from file
+	keywordDB = JSON.parse(
+		fs.readFileSync("./plugins/keyword-manager/keywordDB.json", "utf8")
+	);
 }
 
 function addKeyword(msg) {
