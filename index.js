@@ -2,7 +2,16 @@
 import fs from "fs";
 import fetch from "node-fetch";
 
-// Initialise keywordDB if it does not exist
+// Initialise localisation
+const LOC_ADD_KEYWORD = process.env.ADD_KEYWORD;
+const LOC_EDIT_KEYWORD = process.env.EDIT_KEYWORD;
+const LOC_REMOVE_KEYWORD = process.env.REMOVE_KEYWORD;
+const LOC_LIST_KEYWORDS = process.env.LIST_KEYWORDS;
+const LOC_KEYWORD_EXIST = process.env.KEYWORD_EXIST;
+const LOC_KEYWORD_NONEXISTANT = process.env.KEYWORD_NONEXISTANT;
+const LOC_URL_FETCH_FAIL = process.env.URL_FETCH_FAIL;
+
+// Initialise keywordDB if it ${LOC_KEYWORD_NONEXISTANT}
 if (!fs.existsSync("./plugins/keyword-manager/keywordDB.json")) {
 	fs.writeFileSync("./plugins/keyword-manager/keywordDB.json", "{}", "utf8");
 }
@@ -68,7 +77,7 @@ function addKeyword(msg) {
 	// msg.content = "/add newKeyword::New Content That Is Pretty Long::Category"
 	const keyword = msg.content.split("::")[0].split(" ")[1];
 	let content = msg.content.split("::")[1];
-	const category = msg.content.split("::")[2] || "unsorted";
+	const category = msg.content.split("::")[2] || process.env.UNSORTED_CATEGORY;
 	const categoryLowerCase = category.toLowerCase();
 	if (content.startsWith("http")) {
 		fetch(content)
@@ -85,13 +94,13 @@ function addKeyword(msg) {
 						JSON.stringify(keywordDB, null, 2),
 						"utf8"
 					);
-					msg.reply(`${keyword} has been added with category ${categoryLowerCase}`);
+					msg.reply(`${keyword} ${LOC_ADD_KEYWORD} ${categoryLowerCase}`);
 				} else {
-					msg.reply(`${keyword} already exists`);
+					msg.reply(`${keyword} ${LOC_KEYWORD_EXIST}`);
 				}
 			})
 			.catch((error) => {
-				msg.reply(`Failed to fetch URL for ${keyword} keyword! Aborting action.`);
+				msg.reply(`${LOC_URL_FETCH_FAIL}`);
 			});
 	} else {
 		if (!keywordDB[msg.room][keyword]) {
@@ -101,9 +110,9 @@ function addKeyword(msg) {
 				JSON.stringify(keywordDB, null, 2),
 				"utf8"
 			);
-			msg.reply(`${keyword} has been added with category ${categoryLowerCase}`);
+			msg.reply(`${keyword} ${LOC_ADD_KEYWORD} ${categoryLowerCase}`);
 		} else {
-			msg.reply(`${keyword} already exists`);
+			msg.reply(`${keyword} ${LOC_KEYWORD_EXIST}`);
 		}
 	}
 
@@ -132,14 +141,14 @@ function editKeyword(msg) {
 						"utf8"
 					);
 					msg.reply(
-						`${keyword} has been updated with category ${categoryLowerCase}`
+						`${keyword} ${LOC_EDIT_KEYWORD} ${categoryLowerCase}`
 					);
 				} else {
-					msg.reply(`${keyword} does not exist`);
+					msg.reply(`${keyword} ${LOC_KEYWORD_NONEXISTANT}`);
 				}
 			})
 			.catch((error) => {
-				msg.reply(`Failed to fetch URL for ${keyword} keyword! Aborting action.`);
+				msg.reply(`${LOC_URL_FETCH_FAIL}`);
 			});
 	} else {
 		if (keywordDB[msg.room][keyword]) {
@@ -149,9 +158,9 @@ function editKeyword(msg) {
 				JSON.stringify(keywordDB, null, 2),
 				"utf8"
 			);
-			msg.reply(`${keyword} has been updated with category ${categoryLowerCase}`);
+			msg.reply(`${keyword} ${LOC_EDIT_KEYWORD} ${categoryLowerCase}`);
 		} else {
-			msg.reply(`${keyword} does not exist`);
+			msg.reply(`${keyword} ${LOC_KEYWORD_NONEXISTANT}`);
 		}
 	}
 
@@ -171,9 +180,9 @@ function removeKeyword(msg) {
 			JSON.stringify(keywordDB, null, 2),
 			"utf8"
 		);
-		msg.reply(`${keyword} has been removed`);
+		msg.reply(`${keyword} ${LOC_REMOVE_KEYWORD}`);
 	} else {
-		msg.reply(`${keyword} does not exist`);
+		msg.reply(`${keyword} ${LOC_KEYWORD_NONEXISTANT}`);
 	}
 
 	// Reload keywordDB from file
@@ -199,7 +208,7 @@ function listKeywords(msg) {
 
 	const sortedCategories = Object.keys(categories).sort(); // Sort categories alphabetically
 
-	let replyMessage = "Keyword List\n\n" + "\u200b".repeat(500);
+	let replyMessage = LOC_LIST_KEYWORDS + "\n\n" + "\u200b".repeat(500);
 	sortedCategories.forEach((category) => {
 		replyMessage += `# ${
 			category.charAt(0).toUpperCase() + category.slice(1)
