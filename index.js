@@ -75,7 +75,7 @@ function checkRoomInDB(msg) {
 
 function addKeyword(msg) {
 	// msg.content = "/add newKeyword::New Content That Is Pretty Long::Category"
-	const keyword = msg.content.split("::")[0].split(" ")[1];
+	const keyword = msg.content.split("::")[0].split(" ").slice(1).join(" ");
 	let content = msg.content.split("::")[1];
 	const category = msg.content.split("::")[2] || process.env.UNSORTED_CATEGORY;
 	const categoryLowerCase = category.toLowerCase();
@@ -124,7 +124,7 @@ function addKeyword(msg) {
 
 function editKeyword(msg) {
 	// msg.content = "/add newKeyword::New Content That Is Pretty Long::Category"
-	const keyword = msg.content.split("::")[0].split(" ")[1];
+	const keyword = msg.content.split("::")[0].split(" ").slice(1).join(" ");
 	let content = msg.content.split("::")[1];
 	const category = msg.content.split("::")[2] || "unsorted";
 	const categoryLowerCase = category.toLowerCase();
