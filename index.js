@@ -1,6 +1,7 @@
 // Keyword feature
 import fs from "fs";
 import fetch from "node-fetch";
+import * as cheerio from "cheerio";
 
 // Initialise localisation
 const LOC_ADD_KEYWORD = process.env.ADD_KEYWORD;
@@ -80,6 +81,38 @@ function addKeyword(msg) {
 	const category = msg.content.split("::")[2] || process.env.UNSORTED_CATEGORY;
 	const categoryLowerCase = category.toLowerCase();
 	if (content.startsWith("http")) {
+		if (content.startsWith("https://ctxt.io")) {
+			fetch(content)
+				.then((response) => response.text())
+				.then((html) => {
+					const $ = cheerio.load(html);
+					const htmlProcess1 = $("div").first().html();
+					content = htmlProcess1
+						.replace(/<p>/g, "")
+						.replace(/<\/p>/g, "")
+						.replace(/<div>/g, "")
+						.replace(/<\/div>/g, "\n")
+						.replace(/<br>/g, "")
+						.replace(/<a[^>]*>([^<]+)<\/a>/g, "$1");
+					console.log(content);
+					if (keywordDB[msg.room][keyword]) {
+						keywordDB[msg.room][keyword] = { content, category: categoryLowerCase };
+						fs.writeFileSync(
+							"./plugins/keyword-manager/keywordDB.json",
+							JSON.stringify(keywordDB, null, 2),
+							"utf8"
+						);
+						msg.reply(`${keyword} ${LOC_EDIT_KEYWORD} ${categoryLowerCase}`);
+					} else {
+						msg.reply(`${keyword} ${LOC_KEYWORD_NONEXISTANT}`);
+					}
+				})
+				.catch((error) => {
+					msg.reply(`${LOC_URL_FETCH_FAIL}`);
+				});
+
+			return;
+		}
 		fetch(content)
 			.then((response) => response.text())
 			.then((html) => {
@@ -129,10 +162,45 @@ function editKeyword(msg) {
 	const category = msg.content.split("::")[2] || "unsorted";
 	const categoryLowerCase = category.toLowerCase();
 	if (content.startsWith("http")) {
+		if (content.startsWith("https://ctxt.io")) {
+			fetch(content)
+				.then((response) => response.text())
+				.then((html) => {
+					const $ = cheerio.load(html);
+					const htmlProcess1 = $("div").first().html();
+					content = htmlProcess1
+						.replace(/<p>/g, "")
+						.replace(/<\/p>/g, "")
+						.replace(/<div>/g, "")
+						.replace(/<\/div>/g, "\n")
+						.replace(/<br>/g, "")
+						.replace(/<a[^>]*>([^<]+)<\/a>/g, "$1");
+					console.log(content);
+					if (keywordDB[msg.room][keyword]) {
+						keywordDB[msg.room][keyword] = { content, category: categoryLowerCase };
+						fs.writeFileSync(
+							"./plugins/keyword-manager/keywordDB.json",
+							JSON.stringify(keywordDB, null, 2),
+							"utf8"
+						);
+						msg.reply(`${keyword} ${LOC_EDIT_KEYWORD} ${categoryLowerCase}`);
+					} else {
+						msg.reply(`${keyword} ${LOC_KEYWORD_NONEXISTANT}`);
+					}
+				})
+				.catch((error) => {
+					msg.reply(`${LOC_URL_FETCH_FAIL}`);
+				});
+
+			return;
+		}
 		fetch(content)
 			.then((response) => response.text())
 			.then((html) => {
-				content = html.replace(/<[^>]*>/g, "");
+				content = html
+					.replace(/<[^>]*>/g, "")
+					.replace(/<style[^>]*>.*<\/style>/gm, "")
+					.replace(/<script[^>]*>.*<\/script>/gm, ""); // Get only body of HTML
 				if (keywordDB[msg.room][keyword]) {
 					keywordDB[msg.room][keyword] = { content, category: categoryLowerCase };
 					fs.writeFileSync(
@@ -140,9 +208,7 @@ function editKeyword(msg) {
 						JSON.stringify(keywordDB, null, 2),
 						"utf8"
 					);
-					msg.reply(
-						`${keyword} ${LOC_EDIT_KEYWORD} ${categoryLowerCase}`
-					);
+					msg.reply(`${keyword} ${LOC_EDIT_KEYWORD} ${categoryLowerCase}`);
 				} else {
 					msg.reply(`${keyword} ${LOC_KEYWORD_NONEXISTANT}`);
 				}
