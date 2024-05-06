@@ -95,16 +95,17 @@ function addKeyword(msg) {
 						.replace(/<br>/g, "")
 						.replace(/<a[^>]*>([^<]+)<\/a>/g, "$1");
 					console.log(content);
-					if (keywordDB[msg.room][keyword]) {
+					if (!keywordDB[msg.room][keyword]) {
 						keywordDB[msg.room][keyword] = { content, category: categoryLowerCase };
 						fs.writeFileSync(
 							"./plugins/keyword-manager/keywordDB.json",
 							JSON.stringify(keywordDB, null, 2),
 							"utf8"
 						);
-						msg.reply(`${keyword} ${LOC_EDIT_KEYWORD} ${categoryLowerCase}`);
+						msg.reply(`${keyword} ${LOC_ADD_KEYWORD} ${categoryLowerCase}`);
 					} else {
-						msg.reply(`${keyword} ${LOC_KEYWORD_NONEXISTANT}`);
+						msg.reply(`${keyword} ${LOC_KEYWORD_EXIST}`);
+						console.log(keyword);
 					}
 				})
 				.catch((error) => {
