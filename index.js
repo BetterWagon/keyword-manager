@@ -239,7 +239,7 @@ function editKeyword(msg) {
 
 function removeKeyword(msg) {
 	// msg.content = "/remove keyword"
-	const keyword = msg.content.split(" ")[1];
+	const keyword = msg.content.split("::")[0].split(" ").slice(1).join(" ");
 	if (keywordDB[msg.room][keyword]) {
 		delete keywordDB[msg.room][keyword];
 		fs.writeFileSync(
