@@ -13,14 +13,12 @@ const LOC_KEYWORD_NONEXISTANT = process.env.KEYWORD_NONEXISTANT;
 const LOC_URL_FETCH_FAIL = process.env.URL_FETCH_FAIL;
 
 // Initialise keywordDB if it ${LOC_KEYWORD_NONEXISTANT}
-if (!fs.existsSync("./plugins/keyword-manager/keywordDB.json")) {
-	fs.writeFileSync("./plugins/keyword-manager/keywordDB.json", "{}", "utf8");
+if (!fs.existsSync("./data/keywordDB.json")) {
+	fs.writeFileSync("./data/keywordDB.json", "{}", "utf8");
 }
 
 // Load keywordDB from file
-let keywordDB = JSON.parse(
-	fs.readFileSync("./plugins/keyword-manager/keywordDB.json", "utf8")
-);
+let keywordDB = JSON.parse(fs.readFileSync("./data/keywordDB.json", "utf8"));
 
 // Prevent spamming
 let lastReplyTime = 0;
@@ -63,15 +61,13 @@ function checkRoomInDB(msg) {
 
 	keywordDB[msg.room] = {};
 	fs.writeFileSync(
-		"./plugins/keyword-manager/keywordDB.json",
+		"./data/keywordDB.json",
 		JSON.stringify(keywordDB, null, 2),
 		"utf8"
 	);
 
 	// Reload keywordDB from file
-	keywordDB = JSON.parse(
-		fs.readFileSync("./plugins/keyword-manager/keywordDB.json", "utf8")
-	);
+	keywordDB = JSON.parse(fs.readFileSync("./data/keywordDB.json", "utf8"));
 }
 
 function addKeyword(msg) {
@@ -98,7 +94,7 @@ function addKeyword(msg) {
 					if (!keywordDB[msg.room][keyword]) {
 						keywordDB[msg.room][keyword] = { content, category: categoryLowerCase };
 						fs.writeFileSync(
-							"./plugins/keyword-manager/keywordDB.json",
+							"./data/keywordDB.json",
 							JSON.stringify(keywordDB, null, 2),
 							"utf8"
 						);
@@ -124,7 +120,7 @@ function addKeyword(msg) {
 				if (!keywordDB[msg.room][keyword]) {
 					keywordDB[msg.room][keyword] = { content, category: categoryLowerCase };
 					fs.writeFileSync(
-						"./plugins/keyword-manager/keywordDB.json",
+						"./data/keywordDB.json",
 						JSON.stringify(keywordDB, null, 2),
 						"utf8"
 					);
@@ -140,7 +136,7 @@ function addKeyword(msg) {
 		if (!keywordDB[msg.room][keyword]) {
 			keywordDB[msg.room][keyword] = { content, category: categoryLowerCase };
 			fs.writeFileSync(
-				"./plugins/keyword-manager/keywordDB.json",
+				"./data/keywordDB.json",
 				JSON.stringify(keywordDB, null, 2),
 				"utf8"
 			);
@@ -151,9 +147,7 @@ function addKeyword(msg) {
 	}
 
 	// Reload keywordDB from file
-	keywordDB = JSON.parse(
-		fs.readFileSync("./plugins/keyword-manager/keywordDB.json", "utf8")
-	);
+	keywordDB = JSON.parse(fs.readFileSync("./data/keywordDB.json", "utf8"));
 }
 
 function editKeyword(msg) {
@@ -180,7 +174,7 @@ function editKeyword(msg) {
 					if (keywordDB[msg.room][keyword]) {
 						keywordDB[msg.room][keyword] = { content, category: categoryLowerCase };
 						fs.writeFileSync(
-							"./plugins/keyword-manager/keywordDB.json",
+							"./data/keywordDB.json",
 							JSON.stringify(keywordDB, null, 2),
 							"utf8"
 						);
@@ -205,7 +199,7 @@ function editKeyword(msg) {
 				if (keywordDB[msg.room][keyword]) {
 					keywordDB[msg.room][keyword] = { content, category: categoryLowerCase };
 					fs.writeFileSync(
-						"./plugins/keyword-manager/keywordDB.json",
+						"./data/keywordDB.json",
 						JSON.stringify(keywordDB, null, 2),
 						"utf8"
 					);
@@ -221,7 +215,7 @@ function editKeyword(msg) {
 		if (keywordDB[msg.room][keyword]) {
 			keywordDB[msg.room][keyword] = { content, category: categoryLowerCase };
 			fs.writeFileSync(
-				"./plugins/keyword-manager/keywordDB.json",
+				"./data/keywordDB.json",
 				JSON.stringify(keywordDB, null, 2),
 				"utf8"
 			);
@@ -232,9 +226,7 @@ function editKeyword(msg) {
 	}
 
 	// Reload keywordDB from file
-	keywordDB = JSON.parse(
-		fs.readFileSync("./plugins/keyword-manager/keywordDB.json", "utf8")
-	);
+	keywordDB = JSON.parse(fs.readFileSync("./data/keywordDB.json", "utf8"));
 }
 
 function removeKeyword(msg) {
@@ -243,7 +235,7 @@ function removeKeyword(msg) {
 	if (keywordDB[msg.room][keyword]) {
 		delete keywordDB[msg.room][keyword];
 		fs.writeFileSync(
-			"./plugins/keyword-manager/keywordDB.json",
+			"./data/keywordDB.json",
 			JSON.stringify(keywordDB, null, 2),
 			"utf8"
 		);
@@ -253,16 +245,12 @@ function removeKeyword(msg) {
 	}
 
 	// Reload keywordDB from file
-	keywordDB = JSON.parse(
-		fs.readFileSync("./plugins/keyword-manager/keywordDB.json", "utf8")
-	);
+	keywordDB = JSON.parse(fs.readFileSync("./data/keywordDB.json", "utf8"));
 }
 
 function listKeywords(msg) {
 	// Sample JSON : { "keyword": { "content": "content", "category": "category" }
-	const keywordDB = JSON.parse(
-		fs.readFileSync("./plugins/keyword-manager/keywordDB.json", "utf8")
-	);
+	const keywordDB = JSON.parse(fs.readFileSync("./data/keywordDB.json", "utf8"));
 	const categories = {};
 
 	Object.keys(keywordDB[msg.room]).forEach((keyword) => {

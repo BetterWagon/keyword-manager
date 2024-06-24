@@ -1,0 +1,25 @@
+{
+  "name": "keyword-manager",
+  "version": "1.0.0",
+  "description": "This plugin allows you to manage keywords for your bot. You can add, update, and remove keywords.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BetterBoxx/keyword-manager.git"
+  },
+  "author": "Shane Lx",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/BetterBoxx/keyword-manager/issues"
+  },
+  "homepage": "https://github.com/BetterBoxx/keyword-manager#readme",
+  "type": "module",
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.12",
+    "node-fetch": "^3.3.2"
+  },
+  "private": true
+}
