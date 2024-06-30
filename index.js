@@ -1,7 +1,9 @@
-// Keyword feature
+import * as dotenv from "dotenv";
 import fs from "fs";
 import fetch from "node-fetch";
 import * as cheerio from "cheerio";
+
+dotenv.config({ path: "./.env" });
 
 // Initialise localisation
 const LOC_ADD_KEYWORD = process.env.ADD_KEYWORD;
